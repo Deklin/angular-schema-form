@@ -11,9 +11,19 @@ angular.module('schemaForm').provider('sfBuilder', ['sfPathProvider', function(s
   };
   var formId = 0;
 
+  if (!("firstElementChild" in document.createDocumentFragment())) {
+    Object.defineProperty(DocumentFragment.prototype, "firstElementChild", {
+      get: function () {
+        for (var nodes = this.childNodes, n, i = 0, l = nodes.length; i < l; ++i)
+          if (n = nodes[i], 1 === n.nodeType) return n;
+        return null;
+      }
+    });
+  }
+
   var builders = {
     sfField: function(args) {
-      args.fieldFrag.firstChild.setAttribute('sf-field', formId);
+      args.fieldFrag.firstElementChild.setAttribute('sf-field', formId);
 
       // We use a lookup table for easy access to our form.
       args.lookup['f' + formId] = args.form;
@@ -116,16 +126,19 @@ angular.module('schemaForm').provider('sfBuilder', ['sfPathProvider', function(s
         }
 
         var children = args.fieldFrag.children || args.fieldFrag.childNodes;
+        var child;
+        var ngIf;
         for (var i = 0; i < children.length; i++) {
-            var child = children[i];
+          child = children[i];
+          ngIf = false;
 
-            if (child.hasAttribute && child.hasAttribute('ng-if')) {
-                ngIf = child.getAttribute('ng-if');
-            };
+          if (child.hasAttribute && child.hasAttribute('ng-if')) {
+            ngIf = child.getAttribute('ng-if');
+          };
 
-            if (child.setAttribute) {
-                child.setAttribute('ng-if', ngIf ? '(' + ngIf + ') || (' + evalExpr + ')' : evalExpr);
-            };
+          if (child.setAttribute) {
+            child.setAttribute('ng-if', ngIf ? '(' + ngIf + ') || (' + evalExpr + ')' : evalExpr);
+          };
         }
       }
     },
@@ -133,7 +146,7 @@ angular.module('schemaForm').provider('sfBuilder', ['sfPathProvider', function(s
       var items = args.fieldFrag.querySelector('[schema-form-array-items]');
       if (items) {
         state = angular.copy(args.state);
-        state.keyRedaction = state.keyRedaction || 0;
+        state.keyRedaction = 0;
         state.keyRedaction += args.form.key.length + 1;
 
         // Special case, an array with just one item in it that is not an object.
