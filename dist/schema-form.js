@@ -696,7 +696,7 @@ angular.module('schemaForm').provider('schemaFormDecorators',
 
   var createManualDirective = function(type, templateUrl, transclude) {
     transclude = angular.isDefined(transclude) ? transclude : false;
-    $compileProvider.directive('sf' + angular.uppercase(type[0]) + type.substr(1), function() {
+    $compileProvider.directive('sf' + (angular.isString(type[0]) ? type[0].toUpperCase() : type[0]) + type.substr(1), function() {
       return {
         restrict: 'EAC',
         scope: true,
@@ -2857,8 +2857,8 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', '$parse
 
         // A bit ugly but useful.
         scope.validateField =  function(formName) {
-          
-          // If we have specified a form name, and this model is not within 
+
+          // If we have specified a form name, and this model is not within
           // that form, then leave things be.
           if(formName != undefined && ngModel.$$parentForm.$name !== formName) {
             return;
